@@ -1,0 +1,36 @@
+parameter_defaults:
+  CloudName: {{ local_ip }}
+  ControlPlaneStaticRoutes:
+   - ip_netmask: 0.0.0.0/0
+     next_hop: {{ local_gw }}
+     default: true
+  Debug: true
+  DeploymentUser: stack
+  DnsServers:
+    - 1.1.1.1
+    - 1.0.0.1 
+  EnablePackageInstall: true
+  NeutronDhcpAgentDnsmasqDnsServers:
+    - {{ local_gw }}
+  
+  KernelIpNonLocalBind: 1
+  DockerInsecureRegistryAddress:
+  - {{ local_ip }}:8787
+  NeutronPublicInterface: {{ iface }}
+
+  NeutronBridgeMappings: datacentre:br-ctlplane
+  NeutronPhysicalBridge: br-ctlplane
+  NeutronEnableForceMetadata: true
+  NeutronDnsDomain: {{ domain }}
+  NeutronPluginExtensions: "qos,port_security,dns_domain_ports"
+  ControllerExtraConfig:
+    neutron::agents::dhcp::dnsmasq_local_resolv: true
+
+  StandaloneEnableRoutedNetworks: false
+  StandaloneHomeDir: /home/stack
+  StandaloneLocalMtu: 1500
+  OctaviaAmphoraSshKeyFile: /home/stack/.ssh/id_rsa.pub
+  NtpServer: ['0.us.pool.ntp.org']
+  ContainerImageRegistryCredentials:
+    registry.redhat.io:
+      {{ rhel_user }}: {{ rhel_pass }}

@@ -1,6 +1,10 @@
 ---
-localip: <local ip>
+local_ip: <local ip>
+cidr: <network cidr>
+local_gw: <network gateway>
+iface: <network interface on the remote machine>
 hostname: <hostname>
+domain: <domain name>
 rhel_user: <subscriptionmanager username> 
 rhel_pass: <subscriptionmanager password>
 rhel_pool: <subscriptionmanager pool_id>

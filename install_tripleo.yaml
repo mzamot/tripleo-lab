@@ -1,15 +1,20 @@
 ---
 - name: Configure host to install tripleo lab to run OpenShift
-  hosts: localhost
+  hosts: tripleo
   vars_files:
     - vars.yaml
+
   tasks:
+  - name: Set hostname
+    hostname:
+      name: "{{ hostname }}"
+
   - name: Subscribe host
     redhat_subscription:
       state: present
       username: "{{ rhel_user }}" 
       password: "{{ rhel_pass }}"
-      pool_ids: "{{ rhel_pool }}
+      pool_ids: "{{ rhel_pool }}"
 
   - name: Disable all RHSM repositories
     rhsm_repository:
@@ -36,7 +41,6 @@
   - name: Install extra packages
     yum:
       name:
-        - epel-release
         - wget
         - curl
         - tmux
@@ -44,12 +48,8 @@
 
   - name: Install TripleO Client
     yum:
-      name: python2-tripleoclient
+      name: python3-tripleoclient
       state: present
-
-  - name: Set hostname
-    hostname:
-      name: "{{ hostname }}"
 
   - name: Create stack user
     user:
@@ -72,6 +72,47 @@
   - name: Create new SSH key
     openssh_keypair:
       path: /home/stack/.ssh/id_rsa
-      user: stack 
+      owner: stack 
       group: stack
       mode: '600'
+
+  - name: Create templates directory
+    file:
+      path: /home/stack/templates
+      state: directory
+      owner: stack
+      group: stack
+
+  - name: Copy template with parameters
+    template:
+      src: templates/standalone_parameters.yaml.j2
+      dest: /home/stack/templates/standalone_parameters.yaml
+      owner: stack
+      group: stack
+ 
+  - name: Copy custom standalone role
+    template:
+      src: templates/custom-standalone.yaml.j2
+      dest: /home/stack/templates/custom-standalone.yaml
+      owner: stack
+      group: stack
+
+  - name: Copy custom standalone environment file
+    template:
+      src: templates/standalone-tripleo.yaml.j2
+      dest: /home/stack/templates/standalone-tripleo.yaml
+      owner: stack
+      group: stack
+
+  - name: Create containers-prepare-parameters
+    shell: |
+      openstack tripleo container image prepare default \
+        --output-env-file /home/stack/templates/containers-prepare-parameters.yaml
+
+  - name: Copy deployment script
+    template:
+      src: templates/deploy.sh
+      dest: /home/stack/templates/deploy.sh
+      owner: stack
+      group: stack
+      mode: 0750
