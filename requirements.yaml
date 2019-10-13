@@ -1,0 +1,77 @@
+---
+- name: Configure host to install tripleo lab to run OpenShift
+  hosts: localhost
+  vars_files:
+    - vars.yaml
+  tasks:
+  - name: Subscribe host
+    redhat_subscription:
+      state: present
+      username: "{{ rhel_user }}" 
+      password: "{{ rhel_pass }}"
+      pool_ids: "{{ rhel_pool }}
+
+  - name: Disable all RHSM repositories
+    rhsm_repository:
+      name: '*'
+      state: disabled
+
+  - name: Enable required repositories to install RHOSP 15
+    rhsm_repository:
+      name: "{{ item }}"
+      state: enabled
+    loop:
+      - rhel-8-for-x86_64-baseos-rpms
+      - rhel-8-for-x86_64-appstream-rpms
+      - rhel-8-for-x86_64-highavailability-rpms
+      - ansible-2.8-for-rhel-8-x86_64-rpms
+      - openstack-15-for-rhel-8-x86_64-rpms
+      - fast-datapath-for-rhel-8-x86_64-rpms
+
+  - name: Update all packages
+    yum:
+      name: '*'
+      state: latest
+
+  - name: Install extra packages
+    yum:
+      name:
+        - epel-release
+        - wget
+        - curl
+        - tmux
+        - vim
+
+  - name: Install TripleO Client
+    yum:
+      name: python2-tripleoclient
+      state: present
+
+  - name: Set hostname
+    hostname:
+      name: "{{ hostname }}"
+
+  - name: Create stack user
+    user:
+      name: stack
+      groups: wheel
+
+  - name: Configure sudo to disable password for members of wheel
+    lineinfile:
+      path: /etc/sudoers
+      state: present
+      regexp: '^%wheel\s'
+      line: '%wheel ALL=(ALL) NOPASSWD: ALL'
+
+  - name: Ensure ssh folder exists
+    file:
+      path: /home/stack/.ssh
+      state: directory
+      mode: '0700'
+
+  - name: Create new SSH key
+    openssh_keypair:
+      path: /home/stack/.ssh/id_rsa
+      user: stack 
+      group: stack
+      mode: '600'

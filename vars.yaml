@@ -1,0 +1,6 @@
+---
+localip: <local ip>
+hostname: <hostname>
+rhel_user: <subscriptionmanager username> 
+rhel_pass: <subscriptionmanager password>
+rhel_pool: <subscriptionmanager pool_id>
